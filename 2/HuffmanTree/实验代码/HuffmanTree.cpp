@@ -1,131 +1,163 @@
 #include <iostream>
-#include <iomanip>
+#include <string>
+#include <malloc.h>
 using namespace std;
-
-//å“ˆå¤«æ›¼æ ‘çš„å‚¨å­˜è¡¨ç¤º
-typedef struct 
+struct charAndNum
 {
+	char c;
+	int num;
+	char *code;
+	charAndNum* next;
+};
+typedef struct
+{
+	char data;
 	int weight;
-	int parent,lChild,rChild;
+	int parent,lchild,rchild;
 }HTNode,*HuffmanTree;
-
-//é€‰æ‹©æƒå€¼æœ€å°çš„ä¸¤æ£µæ ‘
-void SelectMin(HuffmanTree hT,int n,int &s1,int &s2)
+typedef char** HuffmanCode;
+charAndNum* charNum()
 {
-	s1 = s2 = 0;
-	int i;
-	for(i = 1;i < n;++i)
+	int char_num[128];
+    for(int i=0;i<128;i++)
+		char_num[i] = 0;
+	charAndNum *p = new charAndNum;
+    charAndNum *head = p;
+	head->next = NULL;
+	head->num = 0;
+	string source;
+	cout << "ÇëÊäÈëÔ´Âë:" << endl;
+	cin >> source;
+	for(int j=0;j<source.length();j++)
 	{
-		if(hT[i].parent == 0)
+		char_num[int(source[j])]++;
+	}
+    for(int i = 0;i < 128;i++)
+    {
+    	if(char_num[i] != 0)
+    	{
+			p->next = new charAndNum;
+			p = p->next;
+    		p->c = char(i);
+    		p->num = char_num[i];
+			head->num++;
+    	}
+    }
+	p->next = NULL;
+	return head;
+}
+
+void SelectMin(HuffmanTree HT,int n,int &s1,int &s2)
+{
+	s1 = s2 = -1;
+	int min_1,min_2;
+	min_1 = min_2 = 10000;
+	for(int i =0;i < n;i++)
+	{
+		if(HT[i].parent == -1)
+		if(HT[i].weight < min_1)
 		{
-			if(s1 == 0)
-			{
-				s1 = i;
-			}
-			else
-			{
-				s2 = i;break;
-			}
+			s1 = i;min_1 = HT[i].weight;
 		}
 	}
-	if(hT[s1].weight > hT[s2].weight)
+	for(int i = 0;i < n;i++)
 	{
-		int t = s1;
-		s1 = s2;
-		s2 = t;
-	}
-
-	for(i += 1;i < n;++i)
-	{
-		if(hT[i].parent == 0)
+		if(HT[i].parent == -1)
+		if(HT[i].weight < min_2 && (HT[i].weight >= min_1 && s1 != i))
 		{
-			if(hT[i].weight < hT[s1].weight)
-			{
-				s2 = s1;
-				s1 = i;
-			}
-			else if(hT[i].weight < hT[s2].weight)
-			{
-				s2 = i;
-			}
+			s2 = i;min_2 = HT[i].weight;
 		}
 	}
 }
 
-//æ„é€ æœ‰nä¸ªæƒå€¼(å¶å­èŠ‚ç‚¹)çš„å“ˆå¤«æ›¼æ ‘
-void CreatHumanTree(HuffmanTree &hT)
+void HuffmanCoding(HuffmanTree &HT,HuffmanCode &HC,charAndNum *l,int n)
 {
-	int n,m;
-	cin >> n;
-	m = 2*n - 1;
-	hT = new HTNode[m+1];
-	for(int i = 1;i <= m;++i)
+	if(n <= 1) return ;
+	int m = 2*n-1;
+	HT = (HuffmanTree)malloc((m)*sizeof(HTNode));
+	HuffmanTree p;
+	int i;
+	l = l->next;
+	for(p = HT,i = 0;i < n && l;++i,l = l->next)
 	{
-		hT[i].parent = hT[i].lChild = hT[i].rChild = 0;
+		p[i].weight = l->num;
+		p[i].data = l->c;
+		p[i].parent = p[i].lchild = p[i].rchild = -1;
 	}
-	for(int i = 1;i <= n;++i)
+	for(;i < m;++i)
 	{
-		cin >> hT[i].weight;
+		p[i].weight = p[i].parent = p[i].lchild = p[i].rchild = -1;
 	}
-	hT[0].weight = m;
-
-	for(int i = n+1;i <= m;++i)
+	for(i = n;i < m;++i)
 	{
 		int s1,s2;
-		SelectMin(hT,i,s1,s2);
-		hT[s1].parent = hT[s2].parent = i;
-		hT[i].lChild = s1;
-		hT[i].rChild = s2;
-		hT[i].weight = hT[s1].weight + hT[s2].weight;
+		SelectMin(HT,i,s1,s2);
+		HT[s1].parent = HT[s2].parent = i;
+		HT[i].lchild = s1;
+		HT[i].rchild = s2;
+		HT[i].weight = HT[s1].weight + HT[s2].weight;
 	}
-}
-
-int HuffmanTreeWPL(HuffmanTree hT,int i,int deepth)
-{
-	if(hT[i].lChild == 0 && hT[i].rChild == 0)
+	for(int j = 0;j < m;j++)
 	{
-		return hT[i].weight * deepth;
+		cout << "±àºÅ\tÈ¨Öµ\t×óº¢×Ó\tÓÒº¢×Ó\t¸¸Ä¸" << endl;
+		cout <<j + 1 << '\t' << HT[j].weight << '\t' << HT[j].lchild + 1 << '\t' << HT[j].rchild + 1 << '\t' << HT[j].parent + 1 << endl;
 	}
-	else
+	HC = (HuffmanCode)malloc((n)*sizeof(char*));
+	char* cd = (char*)malloc(n*sizeof(char));
+	cd[n-1] = '\0';
+	int c,start;
+	for(i = 0;i < n;++i)
 	{
-		return HuffmanTreeWPL(hT,hT[i].lChild,deepth)+HuffmanTreeWPL(hT,hT[i].rChild,deepth + 1);
+		start = n -1;
+		int f;
+		for(c = i,f = HT[i].parent; f != -1;c = f,f = HT[f].parent)
+			if(HT[f].lchild == c)
+				cd[--start] = '0';
+			else
+				cd[--start] = '1';
+		HC[i] = (char*)malloc((n-start)*sizeof(char));
+		strcpy(HC[i],&cd[start]);
 	}
+	free(cd);
 }
-
-//è®¡ç®—WPL(å¸¦æƒè·¯å¾„é•¿åº¦)
-int HuffmanTreeWPL_(HuffmanTree hT)
+void Decode(HuffmanTree &HT,int n,string source,string &decode)
 {
-	return HuffmanTreeWPL(hT,hT[0].weight,0);
-}
-
-//è¾“å‡ºå“ˆå¤«æ›¼æ ‘å„èŠ‚ç‚¹çš„çŠ¶æ€
-void Print(HuffmanTree hT)
-{
-	cout << "int weight parent lChild rChild" << endl;
-	cout << left;
-	for(int i = 1,m = hT[0].weight;i <= m;++i)
+	int root = 2*n-2;
+	int p =root;
+	int i = 0,k = source.length();
+	while(i < k)
 	{
-		cout << setw(5) << i << " ";
-		cout << setw(6) << hT[i].weight << " ";
-		cout << setw(6) << hT[i].parent << " ";
-		cout << setw(6) << hT[i].lChild << " ";
-		cout << setw(6) << hT[i].rChild << " ";
+		if(source[i]=='0')
+			p = HT[p].lchild;
+		else
+			p = HT[p].rchild;
+		if(HT[p].lchild == -1 && HT[p].rchild == -1)
+		{
+			decode.append(1,HT[p].data);
+			p = root;
+		}
+		i++;
 	}
 }
-
-//é”€æ¯
-void DestoryHuffmanTree(HuffmanTree &hT)
-{
-	delete[] hT;
-	hT = NULL;
-}
-
 int main()
 {
-	HuffmanTree hT;
-	CreatHumanTree(hT);
-	Print(hT);
-	cout << "WPL = " << HuffmanTreeWPL_(hT) << endl;
-	DestoryHuffmanTree(hT);
+	charAndNum *l = charNum();
+	int n = l->num;
+	HuffmanTree HT;
+	HuffmanCode HC;
+	charAndNum *head,*temp;
+	head = temp = l;
+	HuffmanCoding(HT,HC,head,n);
+	for(int i = 0;i < n;i++)
+	{	head = head ->next;
+		head->code = new char[sizeof(HC[i])];
+		strcpy(head->code,HC[i]);
+	}
+	cout << "ÇëÊäÈëĞèÒëÂë:" << endl;
+	string m;
+	cin >> m;
+	string decode;
+	Decode(HT,n,m,decode);
+	cout << decode;
 	return 0;
 }
