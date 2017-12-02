@@ -116,7 +116,7 @@ int main()
 	cout << "请选择\nA、是使学生在各学期中的学习负担尽量均匀\nB、是使课程尽可能地集中在前几个学期中" << endl;
 	cin >> chice;
 	ofstream fout;
-	fout.open("E:\\1.txt");
+	fout.open("1.txt");
 	if(!fout)
 	{
 		cout << "打开失败!" << endl;
